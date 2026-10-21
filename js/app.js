@@ -20,6 +20,26 @@ const ytId = s => {
   const m = s.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([\w-]{11})/);
   return m?m[1]:"";
 };
+/* Clip times. Accepts clip:"0:38-1:12", "38-72", "1:02:05-1:03:00", "0:38" (start only),
+   dashes or "to" between. Falls back to start:/end: numbers, then a ?t= in the link. */
+function toSec(t){
+  t=String(t).trim().replace(/s$/,"");
+  if(/^\d+$/.test(t)) return +t;
+  if(/^\d+(:\d{1,2}){1,2}$/.test(t)) return t.split(":").reduce((a,p)=>a*60+(+p),0);
+  return NaN;
+}
+function clipSpan(clip){
+  if(clip.clip&&String(clip.clip).trim()){
+    const [a,b]=String(clip.clip).split(/\s*(?:-|–|—|\bto\b)\s*/);
+    const start=toSec(a),end=b!==undefined&&b!==""?toSec(b):null;
+    if(isNaN(start)||(end!==null&&(isNaN(end)||end<=start))) return {start:null,end:null,bad:true};
+    return {start,end};
+  }
+  let start=clip.start??null;
+  if(start==null&&clip.yt){const m=String(clip.yt).match(/[?&]t=(\d+)/);if(m)start=+m[1]}
+  return {start,end:clip.end??null};
+}
+const fmt = s => {const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=String(s%60).padStart(2,"0");return h?`${h}:${String(m).padStart(2,"0")}:${x}`:`${m}:${x}`};
 function b64u(bytes){let s="";bytes.forEach(b=>s+=String.fromCharCode(b));return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
 function unb64u(str){str=str.replace(/-/g,"+").replace(/_/g,"/");while(str.length%4)str+="=";const s=atob(str);return Uint8Array.from(s,c=>c.charCodeAt(0))}
 async function pack(prefix,obj){
@@ -110,14 +130,17 @@ function viewWing(k){
 function clipHTML(entryId,clip){
   const id=ytId(clip.yt);
   const who=[clip.artist,clip.year].filter(Boolean).join(", ");
-  const watch=id?`https://www.youtube.com/watch?v=${id}${clip.start?`&t=${clip.start}s`:""}`:yts(clip.q);
+  const sp=clipSpan(clip);
+  const spanTxt=sp.bad?`<span class="err">Check the clip time "${esc(clip.clip)}" (use 0:38-1:12)</span>`
+    :sp.start!=null?`<span class="mono">Listen ${fmt(sp.start)}${sp.end!=null?"–"+fmt(sp.end):""}</span>`:"";
+  const watch=id?`https://www.youtube.com/watch?v=${id}${sp.start?`&t=${sp.start}s`:""}`:yts(clip.q);
   const face=id
-    ? `<button class="video" type="button" data-play="${id}" data-start="${clip.start||""}" data-end="${clip.end||""}" aria-label="Play ${esc(clip.song)}">
+    ? `<button class="video" type="button" data-play="${id}" data-start="${sp.start??""}" data-end="${sp.end??""}" aria-label="Play ${esc(clip.song)}">
          <img alt="" src="https://i.ytimg.com/vi/${id}/hqdefault.jpg" onerror="this.remove()">
          <span class="play" aria-hidden="true">▶</span></button>`
     : `<div class="video" role="img" aria-label="Clip not chosen yet"><span class="note">Clip not chosen yet.<br>Paste a YouTube link into this entry's data.</span></div>`;
   return `<div data-clipwrap>${face}
-    <div class="cliplinks"><span>${esc(clip.song)}${who?` · ${esc(who)}`:""}</span>
+    <div class="cliplinks"><span>${esc(clip.song)}${who?` · ${esc(who)}`:""}</span>${spanTxt}
     <a href="${watch}" target="_blank" rel="noopener">${id?"Can't play? Open on YouTube":"Find on YouTube"}</a></div></div>`;
 }
 function viewTopic(tid){

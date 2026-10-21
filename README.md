@@ -16,11 +16,16 @@ No build step and no backend. Vercel serves the files as they are.
 
 ## Setting a clip
 
-In the entry's `clips` list, paste a YouTube link or the 11-character video ID into `yt:""`. To play just the moment, add start and end times in seconds:
+In the entry's `clips` list, paste a YouTube link or the 11-character video ID into `yt:""`. Then type the moment into `clip:""` the way you'd read it off YouTube:
 
 ```js
-{song:"In the Air Tonight", artist:"Phil Collins", year:1981, yt:"https://www.youtube.com/watch?v=XXXXXXXXXXX", start:220, end:250, q:"Phil Collins In the Air Tonight official"}
+{song:"In the Air Tonight", artist:"Phil Collins", year:1981, yt:"https://www.youtube.com/watch?v=XXXXXXXXXXX", clip:"3:40-4:05", q:"Phil Collins In the Air Tonight official"}
 ```
+
+- `clip:"0:38-1:12"` plays 0:38 to 1:12. `clip:"0:38"` starts at 0:38 and keeps going. Empty plays from the top.
+- Hours work (`"1:02:05-1:03:00"`), and so do plain seconds (`"38-72"`) or "to" (`"0:38 to 1:12"`).
+- If the link you paste already has a time in it (`&t=38`), that's used as the start when `clip` is empty.
+- A mistyped time shows a red "Check the clip time" note on the card, so you'll spot it.
 
 `q` is the search used for the "Find on YouTube" link when no clip is set.
 
