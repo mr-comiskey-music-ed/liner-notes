@@ -8,9 +8,9 @@ No build step and no backend. Vercel serves the files as they are.
 
 | To change… | Edit this file |
 |---|---|
-| An entry's text, clip, badges, or credits | `content/<topic>.js` (e.g. `content/reverb.js`) |
-| A topic's reflection prompts | the `prompts` list at the bottom of that topic's file |
-| The list of topics, wing names, wing blurbs | `content/topics.js` |
+| An entry's text, clip, badges, or credits | `content.js`, in that topic's block |
+| A topic's reflection prompts | the `prompts` list at the end of that topic's block in `content.js` |
+| The list of topics, wing names, wing blurbs | the top of `content.js` |
 | Colors and fonts | `css/style.css` (top of the file) |
 | How the site works (codes, grading, assignments) | `js/app.js` |
 
@@ -26,9 +26,9 @@ In the entry's `clips` list, paste a YouTube link or the 11-character video ID i
 
 ## Adding a topic
 
-1. Copy `content/reverb.js` to `content/<topic-id>.js` and change `CONTENT.reverb` to `CONTENT["<topic-id>"]`.
-2. Add `<script src="content/<topic-id>.js"></script>` to `index.html`, next to the reverb line.
-3. In `content/topics.js`, add `ready:true` to that topic.
+1. In `content.js`, copy the whole Reverb block and paste it below, changing `CONTENT.reverb` to `CONTENT["<topic-id>"]`.
+2. Replace the entries and prompts.
+3. In the topic list at the top of `content.js`, add `ready:true` to that topic.
 
 ## Student codes
 
